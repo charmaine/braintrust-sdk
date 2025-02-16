@@ -25,3 +25,27 @@ jobs:
           pnpm install
           pnpm run test
           pnpm run build
+
+  trigger_val:
+
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Update val
+        env:
+          BEARER_TOKEN: ${{ secrets.VAL_TOWN_API_KEY }}
+          # Ensure this is the same file path as above.
+          VAL_ID: "8d826fa8-ec8b-11ef-a782-e6cdfca9ef9f"
+          FILE_PATH: "/README.md"
+        run: |
+          # Read the contents of the file and convert it to a JSON string.
+          # Using jq to safely escape the contents.
+          FILE_CONTENT=$(cat "$FILE_PATH" | jq -R -s .)
+
+          echo "Syncing TypeScript starter code to Val Town"
+          curl -X POST "https://api.val.town/v1/vals/$VAL_ID/versions" \
+            -H "Authorization: Bearer $BEARER_TOKEN" \
+            -H "Content-Type: application/json" \
+            -d "{\"code\": $FILE_CONTENT}"
